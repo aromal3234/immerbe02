@@ -71,6 +71,9 @@ def seed_admin():
         })
         print(f"[SEED] Admin created → username: {app.config['ADMIN_USERNAME']}  password: {app.config['ADMIN_PASSWORD']}")
 
+# Automatically call when application is imported by Gunicorn
+seed_admin()
+
 # ─────────────────────────── Auth Routes ─────────────────────────────────────
 @app.route('/')
 def index():
@@ -250,5 +253,4 @@ def qr_file(filename):
 
 # ─────────────────────────── Run ─────────────────────────────────────────────
 if __name__ == '__main__':
-    seed_admin()
     app.run(debug=True, host='0.0.0.0', port=5001)
