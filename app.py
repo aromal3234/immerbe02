@@ -9,13 +9,14 @@ from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
+import certifi
 from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 # ─────────────────────────── MongoDB ────────────────────────────────────────
-client = MongoClient(app.config['MONGO_URI'])
+client = MongoClient(app.config['MONGO_URI'], tlsCAFile=certifi.where())
 try:
     db = client.get_default_database()
 except Exception:
