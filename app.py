@@ -16,7 +16,10 @@ app.config.from_object(Config)
 
 # ─────────────────────────── MongoDB ────────────────────────────────────────
 client = MongoClient(app.config['MONGO_URI'])
-db = client.get_default_database()
+try:
+    db = client.get_default_database()
+except Exception:
+    db = client['certdb']
 certs_col = db['certificates']
 admins_col = db['admins']
 logs_col   = db['scan_logs']
