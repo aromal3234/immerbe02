@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – CertVerify{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+      <p class="page-sub">Manage and monitor all certificates</p>
+    </div>
+    <a href="{{ url_for('add_certificate') }}" class="btn-primary-action">
+      <i class="bi bi-plus-lg me-2"></i>New Certificate
+    </a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-total">
+        <div class="stat-icon"><i class="bi bi-award-fill"></i></div>
+        <div class="stat-num">{{ stats.total }}</div>
+        <div class="stat-label">Total Certificates</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-active">
+        <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="stat-num">{{ stats.active }}</div>
+        <div class="stat-label">Active</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-expired">
+        <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+        <div class="stat-num">{{ stats.expired }}</div>
+        <div class="stat-label">Expired</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-revoked">
+        <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+        <div class="stat-num">{{ stats.revoked }}</div>
+        <div class="stat-label">Revoked</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h2 class="table-title"><i class="bi bi-table me-2"></i>All Certificates</h2>
+      <form method="GET" class="d-flex gap-2 flex-wrap">
+        <div class="search-box">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" name="q" class="search-input" placeholder="Search name, ID, course…"
+                 value="{{ search_query }}" />
+        </div>
+        <select name="status" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Status</option>
+          <option value="active"   {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+          <option value="expired"  {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+          <option value="revoked"  {% if status_filter == 'revoked' %}selected{% endif %}>Revoked</option>
+        </select>
+        <button type="submit" class="btn-search"><i class="bi bi-funnel-fill"></i></button>
+        {% if search_query or status_filter %}
+        <a href="{{ url_for('dashboard') }}" class="btn-clear"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+      </form>
+    </div>
+
+    {% if certificates %}
+    <div class="table-responsive">
+      <table class="cert-table" id="certTable">
+        <thead>
+          <tr>
+            <th>DN</th>
+            <th>Number</th>
+            <th>Name</th>
+            <th>Issued Date</th>
+            <th>Expiry Date</th>
+            <th>Status</th>
+            <th>QR Code</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cert in certificates %}
+          <tr class="cert-row fade-in-row">
+            <td><code class="cert-id">{{ cert.dn }}</code></td>
+            <td>{{ cert.number }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="student-avatar">{{ cert.name[0].upper() if cert.name else '?' }}</div>
+                <span>{{ cert.name }}</span>
+              </div>
+            </td>
+            <td>{{ cert.issued_date or '—' }}</td>
+            <td>{{ cert.expiry_date or '—' }}</td>
+            <td>
+              <span class="status-badge status-{{ cert.status }}">
+                <i class="bi bi-{{ 'check-circle-fill' if cert.status == 'active' else 'clock-history' if cert.status == 'expired' else 'x-circle-fill' }} me-1"></i>
+                {{ cert.status.title() }}
+              </span>
+            </td>
+            <td class="text-center">
+              {% if cert.qr_code %}
+              <a href="{{ url_for('static', filename='qrcodes/' + cert.qr_code) }}" target="_blank"
+                 class="qr-preview-btn" title="View QR">
+                <img src="{{ url_for('static', filename='qrcodes/' + cert.qr_code) }}"
+                     class="qr-thumb" alt="QR" />
+              </a>
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td>
+              <div class="action-btns">
+                <a href="{{ url_for('verify', certificate_id=cert.certificate_id) }}" target="_blank"
+                   class="action-btn btn-view" title="Verify"><i class="bi bi-eye-fill"></i></a>
+                <a href="{{ url_for('edit_certificate', cert_id=cert.certificate_id) }}"
+                   class="action-btn btn-edit" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+                <button type="button" class="action-btn btn-delete" title="Delete"
+                        onclick="confirmDelete('{{ cert.certificate_id }}', '{{ cert.name }}')">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>No certificates found.</p>
+      {% if search_query %}
+      <a href="{{ url_for('dashboard') }}" class="btn-primary-action">Clear Search</a>
+      {% else %}
+      <a href="{{ url_for('add_certificate') }}" class="btn-primary-action">Add First Certificate</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-custom">
+      <div class="modal-body text-center p-4">
+        <div class="modal-icon modal-icon-danger"><i class="bi bi-trash-fill"></i></div>
+        <h4 class="mt-3 mb-1">Delete Certificate?</h4>
+        <p class="text-muted mb-1">This will permanently delete the certificate for:</p>
+        <p class="fw-semibold" id="deleteName"></p>
+        <p class="text-muted small" id="deleteId"></p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST">
+          <button type="submit" class="btn btn-danger rounded-pill px-4">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmDelete(certId, studentName) {
+  document.getElementById('deleteName').textContent = studentName;
+  document.getElementById('deleteId').textContent = certId;
+  document.getElementById('deleteForm').action = '/certificate/delete/' + certId;
+  new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

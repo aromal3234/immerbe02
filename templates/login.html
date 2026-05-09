@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Admin Login – CertVerify{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+  <!-- Animated background blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="logo-ring">
+        <i class="bi bi-patch-check-fill"></i>
+      </div>
+    </div>
+    <h1 class="login-title">CertVerify</h1>
+    <p class="login-sub">Certificate Verification System</p>
+    <p class="login-admin-label"><i class="bi bi-shield-lock me-1"></i>Admin Portal</p>
+
+    <form method="POST" action="{{ url_for('login') }}" autocomplete="off">
+      <div class="mb-4">
+        <label class="form-label-custom" for="username">Username</label>
+        <div class="input-group-custom">
+          <i class="bi bi-person-fill input-icon"></i>
+          <input type="text" id="username" name="username" class="form-control-custom"
+                 placeholder="Enter admin username" required autofocus />
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label-custom" for="password">Password</label>
+        <div class="input-group-custom">
+          <i class="bi bi-lock-fill input-icon"></i>
+          <input type="password" id="password" name="password" class="form-control-custom"
+                 placeholder="Enter password" required />
+          <button type="button" class="toggle-pw" onclick="togglePassword()">
+            <i class="bi bi-eye-fill" id="pwIcon"></i>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-login w-100">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <i class="bi bi-shield-check text-success me-1"></i>
+      Secured with AES-256 encryption
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword() {
+  const pw = document.getElementById('password');
+  const icon = document.getElementById('pwIcon');
+  if (pw.type === 'password') {
+    pw.type = 'text';
+    icon.className = 'bi bi-eye-slash-fill';
+  } else {
+    pw.type = 'password';
+    icon.className = 'bi bi-eye-fill';
+  }
+}
+</script>
+{% endblock %}

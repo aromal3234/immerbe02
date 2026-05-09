@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Portal - Seafarers Department</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .verify-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      min-height: 100vh;
+    }
+    header.gov-header {
+      background: #0b2f6b;
+      border-top: 12px solid #b22222;
+      border-bottom: 12px solid #b22222;
+      padding: 30px 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    header.gov-header img {
+      width: 75%;
+      max-width: 850px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #1a237e;
+      margin-bottom: 30px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .status-banner {
+      padding: 15px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 25px;
+      border-radius: 4px;
+    }
+    .status-active { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-expired { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .status-revoked { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .status-invalid { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+    .heading-bar {
+      background: #123c7a;
+      color: white;
+      text-align: center;
+      font-weight: bold;
+      padding: 15px 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: clamp(16px, 4vw, 32px);
+      letter-spacing: 0.5px;
+      border-radius: 4px 4px 0 0;
+      margin-bottom: 0;
+    }
+    
+    table.gov-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1.15rem;
+      margin-bottom: 30px;
+      border: 1px solid #b0bec5;
+      margin-top: 0;
+    }
+    table.gov-table th, table.gov-table td {
+      padding: 12px 15px;
+      text-align: left;
+    }
+    table.gov-table th {
+      background-color: #123c7a;
+      color: #ffffff;
+      font-size: 1.15rem;
+      border: 1px solid #b0bec5;
+      text-align: center;
+    }
+    table.gov-table tr:nth-child(even) {
+      background-color: #dbeaff; /* light blue matching screenshot */
+    }
+    table.gov-table tr:nth-child(odd) {
+      background-color: #ffffff; /* white */
+    }
+    table.gov-table td {
+      border: 1px solid #b0bec5;
+      color: #1a1a1a;
+    }
+    .key-col {
+      width: 40%;
+    }
+    .qr-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .qr-container img {
+      width: 150px;
+      height: 150px;
+      border: 2px solid #1a237e;
+      padding: 5px;
+      background: white;
+    }
+    @media (max-width: 600px) {
+      .key-col { width: 45%; }
+      table.gov-table { font-size: 1rem; }
+      .section-title { font-size: 1.5rem; }
+      header.gov-header img {
+        width: 92%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header Photo replaces text header completely -->
+<header class="gov-header">
+  <img src="{{ url_for('static', filename='header.png') }}" alt="Header Photo" onerror="this.style.display='none';">
+</header>
+
+<div class="verify-container">
+  {% if cert %}
+    
+
+
+    <div class="heading-bar">IMMARBE Seafarers Department 2026</div>
+    <table class="gov-table" style="border-top: none;">
+      <tbody>
+        <tr><td class="key-col">DN:</td><td>{{ cert.dn }}</td></tr>
+        <tr><td class="key-col">Number:</td><td>{{ cert.number }}</td></tr>
+        <tr><td class="key-col">Name:</td><td>{{ cert.name }}</td></tr>
+        {% if cert.dob %}<tr><td class="key-col">Date of birth of the Holder:</td><td>{{ cert.dob }}</td></tr>{% endif %}
+        {% if cert.nationality %}<tr><td class="key-col">Nationality:</td><td>{{ cert.nationality }}</td></tr>{% endif %}
+        {% if cert.regulations %}<tr><td class="key-col">Regulations:</td><td>{{ cert.regulations }}</td></tr>{% endif %}
+        <tr><td class="key-col">Issued:</td><td>{{ cert.issued_date or '—' }}</td></tr>
+        <tr><td class="key-col">Expiry Date:</td><td>{{ cert.expiry_date or 'No Expiry' }}</td></tr>
+        <tr><td class="key-col">status:</td><td style="text-transform: capitalize;">{{ cert.status }}</td></tr>
+        
+        <tr>
+          <th style="width: 50%;">Level</th>
+          <th style="width: 50%;">STC</th>
+        </tr>
+        <tr>
+          <td>Management</td>
+          <td>{{ cert.stc if (cert.level|lower == 'management') else '' }}</td>
+        </tr>
+        <tr>
+          <td>Operational</td>
+          <td>{{ cert.stc if (cert.level|lower == 'operational') else '' }}</td>
+        </tr>
+
+        <tr>
+          <th>Capacity</th>
+          <th>Limitations Applying</th>
+        </tr>
+        <tr style="background-color: #ffffff;">
+          <td>{{ cert.capacity or '—' }}</td>
+          <td>{{ cert.limitations or 'None' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+
+
+  {% else %}
+    <h1 class="section-title" style="color: #721c24;">Invalid Certificate</h1>
+    <div class="status-banner status-invalid">✗ Not Found</div>
+    <p style="text-align: center; font-size: 1.15rem; color: #555; margin-top: 30px;">The certificate ID <strong>{{ cert_id }}</strong> could not be verified or does not exist in our system.</p>
+  {% endif %}
+</div>
+
+</body>
+</html>

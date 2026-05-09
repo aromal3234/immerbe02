@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Add Certificate – CertVerify{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><i class="bi bi-plus-circle me-2"></i>Issue New Certificate</h1>
+      <p class="page-sub">Fill in the details below. A QR code will be auto-generated.</p>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn-secondary-action">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+  </div>
+
+  <div class="form-card">
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('add_certificate') }}" id="certForm">
+
+      <!-- Section: Certificate Details -->
+      <div class="form-section">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">DN *</label>
+            <input type="text" name="dn" class="form-control-custom" required
+                   placeholder="e.g. FEIY27S11CEG" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Number *</label>
+            <input type="text" name="number" class="form-control-custom" required
+                   placeholder="e.g. OE030635-25" />
+          </div>
+          <div class="col-md-12">
+            <label class="form-label-custom">Name *</label>
+            <input type="text" name="name" class="form-control-custom" required
+                   placeholder="e.g. Sourav Jitendra Kansara" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Date of birth of the Holder</label>
+            <input type="date" name="dob" class="form-control-custom" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Nationality</label>
+            <input type="text" name="nationality" class="form-control-custom" placeholder="e.g. Indian" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Regulations</label>
+            <input type="text" name="regulations" class="form-control-custom" placeholder="e.g. REG: II/2" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Issued *</label>
+            <input type="date" name="issued_date" class="form-control-custom" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Expiry Date</label>
+            <input type="date" name="expiry_date" class="form-control-custom" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Level</label>
+            <input type="text" name="level" class="form-control-custom"
+                   placeholder="e.g. Management" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">STC</label>
+            <input type="text" name="stc" class="form-control-custom" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Capacity</label>
+            <input type="text" name="capacity" class="form-control-custom"
+                   placeholder="e.g. Chief Mate" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Limitations Applying</label>
+            <input type="text" name="limitations" class="form-control-custom"
+                   placeholder="e.g. None" value="None" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Status</label>
+            <select name="status" class="form-control-custom">
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+              <option value="revoked">Revoked</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('dashboard') }}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit">
+          <i class="bi bi-qr-code me-2"></i>Issue Certificate &amp; Generate QR
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function updateFileName(input, nameId, zoneId) {
+  const nameEl = document.getElementById(nameId);
+  const zoneEl = document.getElementById(zoneId);
+  if (input.files.length > 0) {
+    nameEl.textContent = input.files[0].name;
+    zoneEl.classList.add('has-file');
+  } else {
+    nameEl.textContent = 'No file chosen';
+    zoneEl.classList.remove('has-file');
+  }
+}
+</script>
+{% endblock %}

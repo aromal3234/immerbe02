@@ -1,0 +1,8 @@
+flask
+flask-login
+pymongo
+qrcode[pil]
+Pillow
+python-dotenv
+Werkzeug
+gunicorn==21.2.0

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Edit Certificate – CertVerify{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><i class="bi bi-pencil-square me-2"></i>Edit Certificate</h1>
+      <p class="page-sub">Modify certificate details for <strong>{{ cert.name }}</strong></p>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn-secondary-action">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+  </div>
+
+  <div class="form-card">
+    <!-- Cert ID Banner -->
+    <div class="cert-id-banner">
+      <i class="bi bi-qr-code me-2"></i>
+      Certificate ID: <strong>{{ cert.certificate_id }}</strong>
+      <a href="{{ url_for('verify', certificate_id=cert.certificate_id) }}" target="_blank"
+         class="ms-3 btn btn-sm btn-outline-light rounded-pill px-3">
+        <i class="bi bi-eye me-1"></i>View Public Page
+      </a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+
+      <!-- Certificate Details -->
+      <div class="form-section">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">DN *</label>
+            <input type="text" name="dn" class="form-control-custom" required
+                   value="{{ cert.dn }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Number *</label>
+            <input type="text" name="number" class="form-control-custom" required
+                   value="{{ cert.number }}" />
+          </div>
+          <div class="col-md-12">
+            <label class="form-label-custom">Name *</label>
+            <input type="text" name="name" class="form-control-custom" required
+                   value="{{ cert.name }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Date of birth of the Holder</label>
+            <input type="date" name="dob" class="form-control-custom"
+                   value="{{ cert.dob or '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Nationality</label>
+            <input type="text" name="nationality" class="form-control-custom"
+                   value="{{ cert.nationality or '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Regulations</label>
+            <input type="text" name="regulations" class="form-control-custom"
+                   value="{{ cert.regulations or '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Issued *</label>
+            <input type="date" name="issued_date" class="form-control-custom" required
+                   value="{{ cert.issued_date or '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Expiry Date</label>
+            <input type="date" name="expiry_date" class="form-control-custom"
+                   value="{{ cert.expiry_date or '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Level</label>
+            <input type="text" name="level" class="form-control-custom"
+                   value="{{ cert.level or '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">STC</label>
+            <input type="text" name="stc" class="form-control-custom"
+                   value="{{ cert.stc or '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Capacity</label>
+            <input type="text" name="capacity" class="form-control-custom"
+                   value="{{ cert.capacity or '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-custom">Limitations Applying</label>
+            <input type="text" name="limitations" class="form-control-custom"
+                   value="{{ cert.limitations or 'None' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Status</label>
+            <select name="status" class="form-control-custom">
+              <option value="active"   {% if cert.status == 'active' %}selected{% endif %}>Active</option>
+              <option value="expired"  {% if cert.status == 'expired' %}selected{% endif %}>Expired</option>
+              <option value="revoked"  {% if cert.status == 'revoked' %}selected{% endif %}>Revoked</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('dashboard') }}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit">
+          <i class="bi bi-floppy-fill me-2"></i>Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function updateFileName(input, nameId) {
+  document.getElementById(nameId).textContent =
+    input.files.length > 0 ? input.files[0].name : 'No file chosen';
+}
+</script>
+{% endblock %}
