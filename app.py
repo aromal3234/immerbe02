@@ -16,7 +16,9 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # ─────────────────────────── MongoDB ────────────────────────────────────────
-client = MongoClient(app.config['MONGO_URI'], tlsCAFile=certifi.where())
+_mongo_uri = app.config['MONGO_URI']
+_mongo_kwargs = {'tlsCAFile': certifi.where()} if 'mongodb+srv' in _mongo_uri or ('mongodb' in _mongo_uri and 'localhost' not in _mongo_uri and '127.0.0.1' not in _mongo_uri) else {}
+client = MongoClient(_mongo_uri, **_mongo_kwargs)
 try:
     db = client.get_default_database()
 except Exception:
