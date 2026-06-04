@@ -1,10 +1,12 @@
 import os
+import io
 import uuid
 import qrcode
 from datetime import datetime
 from functools import wraps
 from flask import (Flask, render_template, request, redirect, url_for,
-                   flash, session, jsonify, send_from_directory)
+                   flash, session, jsonify, send_from_directory, Response)
+from werkzeug.middleware.proxy_fix import ProxyFix
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -14,6 +16,7 @@ from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # ─────────────────────────── MongoDB ────────────────────────────────────────
 _mongo_uri = app.config['MONGO_URI']
@@ -51,26 +54,16 @@ def save_file(file, subfolder='uploads'):
         return filename
     return None
 
-def generate_qr(certificate_id, base_url=None):
-    if not base_url:
-        base_url = app.config.get('BASE_URL', '')
-    # Fall back to request host if BASE_URL is localhost or unset
-    if not base_url or 'localhost' in base_url or '127.0.0.1' in base_url:
-        from flask import request as _req
-        try:
-            base_url = _req.host_url.rstrip('/')
-        except RuntimeError:
-            pass
-    verify_url = f"{base_url}/verify/{certificate_id}"
+def make_qr_image(verify_url):
+    """Return a PNG BytesIO for the given URL."""
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(verify_url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="#1a237e", back_color="white")
-    qr_folder = app.config['QRCODE_FOLDER']
-    os.makedirs(qr_folder, exist_ok=True)
-    filename = f"qr_{certificate_id}.png"
-    img.save(os.path.join(qr_folder, filename))
-    return filename
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    return buf
 
 def seed_admin():
     """Create default admin if none exists."""
@@ -148,7 +141,6 @@ def dashboard():
 def add_certificate():
     if request.method == 'POST':
         cert_id = 'CERT' + uuid.uuid4().hex[:8].upper()
-        qr_code = generate_qr(cert_id)
         doc = {
             'certificate_id':   cert_id,
             'dn':               request.form.get('dn', '').strip(),
@@ -164,7 +156,6 @@ def add_certificate():
             'stc':              request.form.get('stc', '').strip(),
             'capacity':         request.form.get('capacity', '').strip(),
             'limitations':      request.form.get('limitations', 'None').strip(),
-            'qr_code':          qr_code,
             'created_at':       datetime.utcnow(),
             'updated_at':       datetime.utcnow(),
         }
@@ -214,18 +205,13 @@ def delete_certificate(cert_id):
     flash('Certificate deleted successfully.', 'success')
     return redirect(url_for('dashboard'))
 
-# ─────────────────────────── Regenerate QR ───────────────────────────────────
-@app.route('/certificate/regenerate-qr/<cert_id>', methods=['POST'])
-@login_required
-def regenerate_qr(cert_id):
-    cert = certs_col.find_one({'certificate_id': cert_id})
-    if not cert:
-        flash('Certificate not found.', 'danger')
-        return redirect(url_for('dashboard'))
-    qr_filename = generate_qr(cert_id)
-    certs_col.update_one({'certificate_id': cert_id}, {'$set': {'qr_code': qr_filename}})
-    flash(f'QR code regenerated for {cert_id}.', 'success')
-    return redirect(url_for('dashboard'))
+# ─────────────────────────── QR Code (on-the-fly) ───────────────────────────
+@app.route('/certificate/qr/<cert_id>.png')
+def serve_qr(cert_id):
+    """Generate QR on-the-fly so it always uses the correct public URL."""
+    verify_url = request.url_root.rstrip('/') + url_for('verify', certificate_id=cert_id)
+    buf = make_qr_image(verify_url)
+    return Response(buf, mimetype='image/png')
 
 # ─────────────────────────── Public Verification ─────────────────────────────
 @app.route('/verify/<certificate_id>')
