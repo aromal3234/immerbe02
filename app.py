@@ -51,8 +51,17 @@ def save_file(file, subfolder='uploads'):
         return filename
     return None
 
-def generate_qr(certificate_id):
-    verify_url = f"{app.config['BASE_URL']}/verify/{certificate_id}"
+def generate_qr(certificate_id, base_url=None):
+    if not base_url:
+        base_url = app.config.get('BASE_URL', '')
+    # Fall back to request host if BASE_URL is localhost or unset
+    if not base_url or 'localhost' in base_url or '127.0.0.1' in base_url:
+        from flask import request as _req
+        try:
+            base_url = _req.host_url.rstrip('/')
+        except RuntimeError:
+            pass
+    verify_url = f"{base_url}/verify/{certificate_id}"
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(verify_url)
     qr.make(fit=True)
@@ -203,6 +212,19 @@ def edit_certificate(cert_id):
 def delete_certificate(cert_id):
     certs_col.delete_one({'certificate_id': cert_id})
     flash('Certificate deleted successfully.', 'success')
+    return redirect(url_for('dashboard'))
+
+# ─────────────────────────── Regenerate QR ───────────────────────────────────
+@app.route('/certificate/regenerate-qr/<cert_id>', methods=['POST'])
+@login_required
+def regenerate_qr(cert_id):
+    cert = certs_col.find_one({'certificate_id': cert_id})
+    if not cert:
+        flash('Certificate not found.', 'danger')
+        return redirect(url_for('dashboard'))
+    qr_filename = generate_qr(cert_id)
+    certs_col.update_one({'certificate_id': cert_id}, {'$set': {'qr_code': qr_filename}})
+    flash(f'QR code regenerated for {cert_id}.', 'success')
     return redirect(url_for('dashboard'))
 
 # ─────────────────────────── Public Verification ─────────────────────────────

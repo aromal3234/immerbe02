@@ -118,6 +118,11 @@
                    class="action-btn btn-view" title="Verify"><i class="bi bi-eye-fill"></i></a>
                 <a href="{{ url_for('edit_certificate', cert_id=cert.certificate_id) }}"
                    class="action-btn btn-edit" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+                <form method="POST" action="{{ url_for('regenerate_qr', cert_id=cert.certificate_id) }}" style="display:inline;">
+                  <button type="submit" class="action-btn btn-view" title="Regenerate QR" style="background:#0d6efd;">
+                    <i class="bi bi-qr-code"></i>
+                  </button>
+                </form>
                 <button type="button" class="action-btn btn-delete" title="Delete"
                         onclick="confirmDelete('{{ cert.certificate_id }}', '{{ cert.name }}')">
                   <i class="bi bi-trash-fill"></i>
